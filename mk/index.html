@@ -1,0 +1,1581 @@
+<!doctype html>
+<html lang="mk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Три е магичен, најчесто</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --color-bg: #fff8f0;
+        --color-surface: #f5ede0;
+        --color-text: #3d2b1f;
+        --color-text-muted: #7a6e62;
+        --color-accent: #2d6a4f;
+        --color-accent-hover: #245a42;
+        --color-highlight: #d4a03c;
+        --color-cycle: #5b7b8a;
+        --color-exception: #c0392b;
+        --color-border: #e8ddd0;
+        --color-error: #c0392b;
+        --font-heading: "DM Sans", sans-serif;
+        --font-body: "Source Sans 3", sans-serif;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: var(--font-body);
+        background: var(--color-bg);
+        color: var(--color-text);
+        min-height: 100vh;
+        overflow-x: hidden;
+        font-size: 1.0625rem;
+        line-height: 1.7;
+      }
+
+      header {
+        text-align: center;
+        padding: 2.5rem 1rem 2rem;
+        border-bottom: 1px solid var(--color-border);
+      }
+
+      header h1 {
+        font-family: var(--font-heading);
+        font-size: clamp(2rem, 5vw, 2.5rem);
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.02em;
+        color: var(--color-text);
+      }
+
+      header h1 .three {
+        color: var(--color-highlight);
+      }
+
+      header p {
+        font-size: clamp(0.95rem, 2.5vw, 1.1rem);
+        color: var(--color-text-muted);
+        max-width: 580px;
+        margin: 0 auto;
+      }
+
+      .container {
+        max-width: 940px;
+        margin: 0 auto;
+        padding: 1rem;
+      }
+
+      section {
+        background: var(--color-bg);
+        border-radius: 0.5rem;
+        padding: 2rem;
+        margin: 1.5rem auto;
+        border: 1px solid var(--color-border);
+      }
+
+      section h2 {
+        font-family: var(--font-heading);
+        font-size: 1.75rem;
+        margin-bottom: 0.8rem;
+        text-align: center;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        color: var(--color-text);
+      }
+
+      .input-row {
+        display: flex;
+        gap: 0.8rem;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 0.5rem;
+      }
+
+      .input-row input {
+        font-family: var(--font-body);
+        font-size: 1.3rem;
+        padding: 0.6rem 1rem;
+        border-radius: 0.375rem;
+        border: 1px solid var(--color-border);
+        background: white;
+        color: var(--color-text);
+        width: 200px;
+        text-align: center;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+
+      .input-row input:focus {
+        border-color: var(--color-accent);
+        box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.1);
+      }
+
+      .btn {
+        font-family: var(--font-heading);
+        font-size: 1rem;
+        padding: 0.625rem 1.25rem;
+        border-radius: 0.375rem;
+        border: none;
+        background: var(--color-accent);
+        color: var(--color-bg);
+        cursor: pointer;
+        font-weight: 500;
+        transition: background 0.2s;
+      }
+
+      .btn:hover {
+        background: var(--color-accent-hover);
+      }
+
+      .error-msg {
+        text-align: center;
+        color: var(--color-error);
+        font-size: 0.9rem;
+        min-height: 1.4em;
+        margin-bottom: 0.5rem;
+      }
+
+      #chain-display {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        justify-content: center;
+        align-items: center;
+        min-height: 50px;
+        padding: 0.8rem;
+      }
+
+      .chain-step {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        animation: fadeIn 0.35s ease-out both;
+      }
+
+      .chain-number {
+        font-family: var(--font-heading);
+        font-size: 1.3rem;
+        font-weight: 600;
+        padding: 0.35rem 0.7rem;
+        border-radius: 0.375rem;
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        text-align: center;
+        color: var(--color-text);
+      }
+
+      .chain-number.is-three {
+        border-color: var(--color-highlight);
+        background: rgba(212, 160, 60, 0.12);
+        color: var(--color-highlight);
+        font-size: 1.5rem;
+        animation:
+          fadeIn 0.35s ease-out,
+          glow-three 1.5s ease-in-out infinite alternate;
+      }
+
+      .chain-number.is-cycle {
+        border-color: var(--color-cycle);
+        background: rgba(91, 123, 138, 0.12);
+        color: var(--color-cycle);
+        font-size: 1.4rem;
+        animation:
+          fadeIn 0.35s ease-out,
+          glow-cycle 1.5s ease-in-out infinite alternate;
+      }
+
+      .chain-word {
+        font-size: 0.78rem;
+        color: var(--color-text-muted);
+        display: block;
+        margin-top: 1px;
+      }
+
+      .chain-arrow {
+        font-size: 1.2rem;
+        color: var(--color-border);
+      }
+
+      #chain-explanation {
+        font-size: 0.9rem;
+        margin-top: 1rem;
+        line-height: 1.7;
+        text-align: left;
+        background: var(--color-surface);
+        padding: 1rem;
+        border-radius: 0.5rem;
+        display: none;
+        border: 1px solid var(--color-border);
+      }
+
+      .word-highlight {
+        color: var(--color-accent);
+        font-weight: 600;
+      }
+      .count-highlight {
+        color: var(--color-text);
+        font-weight: 600;
+      }
+      .three-line {
+        color: var(--color-highlight);
+        font-weight: 600;
+        font-size: 1rem;
+        margin-top: 0.5rem;
+      }
+      .cycle-note {
+        margin-top: 0.6rem;
+        padding: 0.6rem 0.9rem;
+        background: rgba(192, 57, 43, 0.07);
+        border-left: 3px solid var(--color-exception);
+        border-radius: 0 0.4rem 0.4rem 0;
+        color: var(--color-exception);
+        font-weight: 600;
+        font-size: 0.93rem;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(4px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes glow-three {
+        from {
+          box-shadow: 0 0 4px rgba(212, 160, 60, 0.15);
+        }
+        to {
+          box-shadow: 0 0 14px rgba(212, 160, 60, 0.4);
+        }
+      }
+      @keyframes glow-cycle {
+        from {
+          box-shadow: 0 0 4px rgba(91, 123, 138, 0.15);
+        }
+        to {
+          box-shadow: 0 0 14px rgba(91, 123, 138, 0.4);
+        }
+      }
+
+      .confetti-piece {
+        position: fixed;
+        pointer-events: none;
+        z-index: 1000;
+        animation: confettiFall 2s ease-in forwards;
+      }
+      @keyframes confettiFall {
+        0% {
+          opacity: 1;
+          transform: translateY(0) rotate(0deg);
+        }
+        100% {
+          opacity: 0;
+          transform: translateY(100vh) rotate(720deg);
+        }
+      }
+
+      .flow-section .subtitle {
+        text-align: center;
+        color: var(--color-text-muted);
+        margin-bottom: 1.2rem;
+        font-size: 0.95rem;
+      }
+
+      .range-controls {
+        display: flex;
+        gap: 0.6rem;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 0.5rem;
+      }
+
+      .range-controls label {
+        font-size: 0.95rem;
+        color: var(--color-text-muted);
+      }
+
+      .range-controls input[type="text"] {
+        font-family: var(--font-body);
+        font-size: 1rem;
+        padding: 0.35rem 0.5rem;
+        border-radius: 0.375rem;
+        border: 1px solid var(--color-border);
+        background: white;
+        color: var(--color-text);
+        width: 85px;
+        text-align: center;
+        outline: none;
+      }
+
+      .range-controls input[type="text"]:focus {
+        border-color: var(--color-accent);
+        box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.1);
+      }
+
+      .range-controls .btn {
+        font-size: 0.95rem;
+        padding: 0.4rem 1rem;
+      }
+
+      .range-error {
+        text-align: center;
+        color: var(--color-error);
+        font-size: 0.9rem;
+        min-height: 1.4em;
+        margin-bottom: 0.5rem;
+      }
+
+      #flow-container {
+        width: 100%;
+      }
+      #flow-container svg {
+        display: block;
+        margin: 0 auto;
+      }
+
+      .flow-node circle {
+        stroke-width: 1.5;
+        cursor: pointer;
+        transition: opacity 0.2s;
+      }
+      .flow-node text {
+        fill: white;
+        font-family: var(--font-heading);
+        font-weight: 600;
+        pointer-events: none;
+        text-anchor: middle;
+        dominant-baseline: central;
+      }
+
+      .why-section p,
+      .why-section li {
+        font-size: 1.0625rem;
+        line-height: 1.7;
+        margin-bottom: 0.7rem;
+      }
+      .why-section ul {
+        padding-left: 1.5rem;
+        margin-bottom: 0.8rem;
+      }
+
+      .key-insight {
+        background: var(--color-surface);
+        border-left: 4px solid var(--color-highlight);
+        padding: 0.9rem 1.1rem;
+        border-radius: 0 0.5rem 0.5rem 0;
+        margin: 1rem 0;
+      }
+
+      .exception-box {
+        background: rgba(192, 57, 43, 0.05);
+        border: 2px solid var(--color-exception);
+        border-radius: 0.5rem;
+        padding: 1rem 1.2rem;
+        margin: 1.2rem 0;
+      }
+
+      .exception-box .exception-title {
+        font-family: var(--font-heading);
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--color-exception);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .exception-box .exception-title::before {
+        content: "⚠";
+        font-size: 1.1rem;
+      }
+      .exception-box p {
+        font-size: 0.975rem;
+        margin-bottom: 0.4rem;
+        color: var(--color-text);
+      }
+      .exception-box p:last-child {
+        margin-bottom: 0;
+      }
+
+      .cycle-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: rgba(192, 57, 43, 0.1);
+        border: 1.5px solid var(--color-exception);
+        border-radius: 2rem;
+        padding: 0.2rem 0.7rem;
+        font-family: var(--font-heading);
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: var(--color-exception);
+      }
+
+      .table-section .subtitle {
+        text-align: center;
+        color: var(--color-text-muted);
+        margin-bottom: 1rem;
+        font-size: 0.95rem;
+      }
+
+      .table-tabs {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+        margin-bottom: 1rem;
+      }
+
+      .table-tab {
+        font-family: var(--font-body);
+        padding: 0.4rem 1rem;
+        border-radius: 0.375rem;
+        border: 1px solid var(--color-border);
+        background: transparent;
+        color: var(--color-text-muted);
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: all 0.15s;
+      }
+      .table-tab.active {
+        background: var(--color-accent);
+        color: var(--color-bg);
+        border-color: var(--color-accent);
+        font-weight: 600;
+      }
+      .table-tab:hover:not(.active) {
+        border-color: var(--color-highlight);
+        color: var(--color-text);
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+        max-height: 500px;
+        overflow-y: auto;
+        border-radius: 0.5rem;
+        border: 1px solid var(--color-border);
+      }
+      .table-wrap table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9375rem;
+        font-family: var(--font-body);
+      }
+      .table-wrap thead {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+      }
+      .table-wrap th {
+        background: var(--color-surface);
+        font-family: var(--font-heading);
+        padding: 0.75rem 1rem;
+        text-align: left;
+        font-weight: 600;
+        color: var(--color-text);
+        border-bottom: 2px solid var(--color-border);
+        white-space: nowrap;
+      }
+      .table-wrap th.sortable {
+        cursor: pointer;
+        user-select: none;
+      }
+      .table-wrap th.sortable:hover {
+        color: var(--color-accent);
+      }
+      .table-wrap th .sort-arrow {
+        margin-left: 0.3rem;
+        font-size: 0.75rem;
+      }
+      .table-wrap td {
+        padding: 0.625rem 1rem;
+        border-bottom: 1px solid var(--color-border);
+        color: var(--color-text);
+      }
+      .table-wrap tbody tr:nth-child(even) {
+        background: var(--color-surface);
+      }
+      .table-wrap tbody tr:hover {
+        background: rgba(45, 106, 79, 0.06);
+      }
+      .table-wrap .num-cell {
+        font-weight: 600;
+      }
+      .table-wrap .word-cell {
+        color: var(--color-text-muted);
+      }
+      .table-wrap .chain-cell {
+        color: var(--color-text-muted);
+        font-size: 0.85rem;
+      }
+      .table-wrap .pct-bar {
+        display: inline-block;
+        height: 14px;
+        border-radius: 3px;
+        margin-right: 0.5rem;
+        vertical-align: middle;
+      }
+
+      .table-wrap tr.is-three td {
+        background: rgba(212, 160, 60, 0.1) !important;
+      }
+      .table-wrap tr.is-three td.num-cell {
+        color: var(--color-highlight);
+      }
+      .table-wrap tr.is-cycle td {
+        background: rgba(91, 123, 138, 0.08) !important;
+      }
+      .table-wrap tr.is-cycle td.num-cell {
+        color: var(--color-cycle);
+      }
+
+      footer {
+        text-align: center;
+        padding: 2rem 1rem;
+        color: var(--color-text-muted);
+        font-size: 0.85rem;
+      }
+      footer a {
+        color: var(--color-accent);
+        text-decoration: underline;
+        text-decoration-color: rgba(45, 106, 79, 0.25);
+        text-underline-offset: 2px;
+        transition: text-decoration-color 0.2s;
+      }
+      footer a:hover {
+        text-decoration-color: var(--color-accent);
+      }
+      footer svg {
+        width: 1em;
+        height: 1em;
+        vertical-align: -0.125em;
+        fill: currentColor;
+        margin-right: 0.25em;
+      }
+
+      @media (max-width: 600px) {
+        section {
+          padding: 1.2rem;
+          margin: 1rem;
+        }
+        .range-controls {
+          gap: 0.4rem;
+        }
+        .range-controls input[type="text"] {
+          width: 65px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1><span class="three">Три</span> е магичен, најчесто</h1>
+      <p>
+        Одберете било кој број. Избројте ги буквите во неговото име. Повторете.
+        Речиси секогаш завршувате на три — освен за еден мал исклучок!
+      </p>
+    </header>
+
+    <div class="container">
+      <!-- Try It -->
+      <section class="try-it">
+        <h2>Пробај број</h2>
+        <div class="input-row">
+          <input
+            type="text"
+            id="number-input"
+            placeholder="Внеси број"
+            inputmode="numeric"
+          />
+          <button class="btn" id="go-btn">Оди</button>
+        </div>
+        <div class="error-msg" id="try-error"></div>
+        <div id="chain-display"></div>
+        <div id="chain-explanation"></div>
+      </section>
+
+      <!-- Flow Graph -->
+      <section class="flow-section">
+        <h2>Каде се движат броевите</h2>
+        <p class="subtitle">
+          Секое кругче е еден број. Стрелките покажуваат каде оди бројот кога ќе
+          му се избројат буквите со кои е напишан. Поширока стрелка значи дека
+          повеќе броеви поминуваат на таа патека. Скоро сè завршува на
+          <strong>3</strong>, освен броевите кои заглавуваат во циклусот
+          <strong>4 ↔ 6</strong>.
+        </p>
+        <div class="range-controls">
+          <label>Прикажи броеви од</label>
+          <input type="text" id="range-min" value="0" inputmode="numeric" />
+          <label>до</label>
+          <input type="text" id="range-max" value="20" inputmode="numeric" />
+          <button class="btn" id="range-go-btn">Нацртај</button>
+        </div>
+        <div class="range-error" id="range-error"></div>
+        <div id="flow-container"></div>
+      </section>
+
+      <!-- Transition Table -->
+      <section class="table-section">
+        <h2>Табела на преоди</h2>
+        <p class="subtitle">
+          За секој број од горниот распон: напишете го, избројте ги буквите и
+          погледнете каде преоѓа групирано по првиот чекор
+          (<strong>Резиме</strong>) или во сите чекори поединечно (<strong
+            >Секој број</strong
+          >). Златно: магичниот број 3. Сино: исклучок во циклусот (4 или 6).
+        </p>
+        <div class="table-tabs" id="table-tabs">
+          <button class="table-tab active" data-view="summary">Резиме</button>
+          <button class="table-tab" data-view="detail">Секој број</button>
+        </div>
+        <div class="table-wrap" id="table-container"></div>
+      </section>
+
+      <!-- Why -->
+      <section class="why-section">
+        <h2>Зошто ова секогаш работи?</h2>
+
+        <p>
+          Тајната е во тоа што кога кој било број ќе се напише со букви, бројот
+          на букви речиси секогаш е <em>помал</em> од бројот со кој сме
+          започнале.
+        </p>
+
+        <div class="key-insight">
+          <strong>Клучна идеја:</strong> Напишете кој било број поголем од
+          неколку десетки и избројте ги буквите. Секогаш добивате помал број.
+          Бидејќи броевите постојано се намалуваат, на крај мора да завршат
+          некаде. А тоа „некаде" на македонски е бројот <strong>3</strong>. Тоа
+          е местото каде што синџирот застанува засекогаш, освен за неколкуте
+          искочоци кои завршуваат во вечниот циклус 4 ↔ 6.
+        </div>
+
+        <p>Погледнете колку брзо се намалуваат броевите:</p>
+        <ul>
+          <li>
+            <strong>„седум"</strong> (7) има 5 букви → „пет" (5) има 3 букви →
+            <strong>3 ✓</strong>
+          </li>
+          <li>
+            <strong>„деведесет"</strong> (90) има 9 букви → „девет" (9) има 5
+            букви → „пет" (5) = 3 → <strong>3 ✓</strong>
+          </li>
+          <li>
+            <strong>„еден милион"</strong> има 10 букви → „десет" (10) = 5 →
+            „пет" (5) = 3 → <strong>3 ✓</strong>
+          </li>
+        </ul>
+
+        <p>
+          Значи, без разлика колку голем е почетниот број, после неколку чекори
+          веќе имаме мал број. А кај малите броеви речиси сите патеки водат кон
+          3.
+        </p>
+
+        <div class="key-insight">
+          <strong>Зошто баш 3?</strong> „Три" има точно 3 букви (т-р-и). Тоа е
+          единствениот број на македонски каде бројот на букви е ист со самата
+          вредност. Со математичка терминологија тоа се нарекува
+          <strong>апсорбирачка состојба</strong>: место во кое влегуваш и не
+          можеш да излезеш. Исто како „four" = 4 на англиски, „три" = 3 на
+          македонски.
+        </div>
+
+        <div class="exception-box">
+          <div class="exception-title">
+            Исклучок: броевите 0, 1, 4, 6 и 8 никогаш не стигнуваат до 3
+          </div>
+          <p>
+            На англиски, <em>сите</em> броеви завршуваат на 4. На македонски,
+            повеќето завршуваат на 3, но постои мала група заробена во вечен
+            циклус:
+          </p>
+          <div
+            style="
+              display: flex;
+              gap: 1rem;
+              justify-content: center;
+              align-items: center;
+              flex-wrap: wrap;
+              margin: 0.8rem 0;
+            "
+          >
+            <span class="cycle-badge">4 → „четири" = 6 букви</span>
+            <span style="font-size: 1.4rem; color: var(--color-exception)"
+              >⟷</span
+            >
+            <span class="cycle-badge">6 → „шест" = 4 букви</span>
+          </div>
+          <p>
+            „Нула", „еден" и „осум“ имаат по 4 букви. Сите тие одат на 4 и
+            влегуваат во циклусот. „Шест" оди на 4, „четири" оди на 6 и така
+            вечно се испраќаат еден на друг.
+          </p>
+          <p>
+            Зошто? Бидејќи <strong>„четири" ≠ 4 букви</strong> (има 6) и
+            <strong>„шест" ≠ 6 букви</strong> (има 4).
+          </p>
+        </div>
+
+        <p>
+          Поставете поголем опсег, на пр. 1 до 1000. Ќе видите дека скоро сите
+          броеви поминуваат низ ист мал сет на патот кон 3 — само неколку
+          заглавуваат во циклусот 4 ↔ 6.
+        </p>
+      </section>
+    </div>
+
+    <footer>
+      Направено со математика &middot; Превод на македонски:
+      <a href="https://github.com/novica/fourismagic"
+        ><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512">
+          <path
+            d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.8-14.9-112.8-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8z"
+          /></svg
+        >GitHub</a
+      >
+      &middot; Адаптирано од:
+      <a href="https://github.com/abigailhaddad/fourismagic"
+        ><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512">
+          <path
+            d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.8-14.9-112.8-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8z"
+          /></svg
+        >GitHub</a
+      >
+    </footer>
+
+    <script>
+      // ============================================================
+      // Number-to-words in Macedonian
+      // ============================================================
+      var MK_ONES = [
+        "",
+        "еден",
+        "два",
+        "три",
+        "четири",
+        "пет",
+        "шест",
+        "седум",
+        "осум",
+        "девет",
+        "десет",
+        "единаесет",
+        "дванаесет",
+        "тринаесет",
+        "четиринаесет",
+        "петнаесет",
+        "шестнаесет",
+        "седумнаесет",
+        "осумнаесет",
+        "деветнаесет",
+      ];
+      var MK_TENS = [
+        "",
+        "",
+        "дваесет",
+        "триесет",
+        "четириесет",
+        "педесет",
+        "шеесет",
+        "седумдесет",
+        "осумдесет",
+        "деведесет",
+      ];
+
+      function mkHundreds(n) {
+        if (n === 0) return "";
+        var w = "";
+        var h = Math.floor(n / 100);
+        var rest = n % 100;
+        if (h === 1) w += "сто ";
+        else if (h === 2) w += "двесте ";
+        else if (h === 3) w += "триста ";
+        else if (h >= 4) w += MK_ONES[h] + "стотини ";
+        if (rest >= 20) {
+          w += MK_TENS[Math.floor(rest / 10)] + " ";
+          if (rest % 10 > 0) w += "и " + MK_ONES[rest % 10] + " "; // ← и only here
+        } else if (rest > 0 && rest < 20) {
+          w += MK_ONES[rest] + " "; // no и for 11-19, they're single words
+        }
+        return w;
+      }
+
+      function numberToWords(n) {
+        if (n === 0) return "нула";
+        var w = "";
+        if (n >= 1000000000000) {
+          var t = Math.floor(n / 1000000000000);
+          w += mkHundreds(t) + (t === 1 ? "билион " : "билиони ");
+          n %= 1000000000000;
+        }
+        if (n >= 1000000000) {
+          var b = Math.floor(n / 1000000000);
+          w += mkHundreds(b) + (b === 1 ? "милијарда " : "милијарди ");
+          n %= 1000000000;
+        }
+        if (n >= 1000000) {
+          var m = Math.floor(n / 1000000);
+          w += mkHundreds(m) + (m === 1 ? "милион " : "милиони ");
+          n %= 1000000;
+        }
+        if (n >= 1000) {
+          var th = Math.floor(n / 1000);
+          if (th === 1) w += "илјада ";
+          else w += mkHundreds(th) + "илјади ";
+          n %= 1000;
+        }
+        w += mkHundreds(n);
+        return w.trim();
+      }
+
+      var MAX_NUMBER = 999999999999999;
+
+      function countLetters(word) {
+        var count = 0;
+        for (var i = 0; i < word.length; i++) {
+          if (/[а-яёА-ЯЁa-zA-ZЃѓЌќЅѕЈјЉљЊњЏџ]/.test(word[i])) count++;
+        }
+        return count;
+      }
+
+      function nextNumber(n) {
+        return countLetters(numberToWords(n));
+      }
+
+      function isInExceptionCycle(n) {
+        return n === 4 || n === 6;
+      }
+
+      function getChain(n) {
+        var chain = [n];
+        var cur = n;
+        var safety = 200;
+        var cycleStepsShown = 0;
+        while (safety-- > 0) {
+          cur = nextNumber(cur);
+          chain.push(cur);
+          if (cur === 3) break;
+          if (isInExceptionCycle(cur)) {
+            cycleStepsShown++;
+            if (cycleStepsShown >= 3) break;
+          }
+        }
+        return chain;
+      }
+
+      // ============================================================
+      // Validation helpers
+      // ============================================================
+      function parseNonNegInt(str) {
+        str = str.trim();
+        if (str === "") return { ok: false, msg: "Внеси број." };
+        if (!/^\d+$/.test(str))
+          return { ok: false, msg: '"' + str + '" не е цел број.' };
+        var n = parseInt(str, 10);
+        if (isNaN(n))
+          return { ok: false, msg: '"' + str + '" не е валиден број.' };
+        return { ok: true, value: n };
+      }
+
+      // ============================================================
+      // Try It
+      // ============================================================
+      document.getElementById("go-btn").addEventListener("click", runChain);
+      document
+        .getElementById("number-input")
+        .addEventListener("keydown", function (e) {
+          if (e.key === "Enter") runChain();
+        });
+
+      function runChain() {
+        var input = document.getElementById("number-input");
+        var errorEl = document.getElementById("try-error");
+        var display = document.getElementById("chain-display");
+        var explanation = document.getElementById("chain-explanation");
+
+        display.textContent = "";
+        explanation.textContent = "";
+        explanation.style.display = "none";
+
+        var parsed = parseNonNegInt(input.value);
+        if (!parsed.ok) {
+          errorEl.textContent = parsed.msg;
+          return;
+        }
+        if (parsed.value > MAX_NUMBER) {
+          errorEl.textContent =
+            "Превисоко. Пробај под " + MAX_NUMBER.toLocaleString("mk-MK") + ".";
+          return;
+        }
+        errorEl.textContent = "";
+
+        var chain = getChain(parsed.value);
+
+        chain.forEach(function (num, i) {
+          setTimeout(function () {
+            if (i > 0) {
+              var arrow = document.createElement("span");
+              arrow.className = "chain-arrow";
+              arrow.textContent = "\u2192";
+              display.appendChild(arrow);
+            }
+            var step = document.createElement("span");
+            step.className = "chain-step";
+
+            var numEl = document.createElement("span");
+            var cls = "chain-number";
+            if (num === 3) cls += " is-three";
+            else if (isInExceptionCycle(num)) cls += " is-cycle";
+            numEl.className = cls;
+            numEl.appendChild(
+              document.createTextNode(num.toLocaleString("mk-MK")),
+            );
+
+            var wordEl = document.createElement("span");
+            wordEl.className = "chain-word";
+            wordEl.textContent = numberToWords(num);
+            numEl.appendChild(wordEl);
+
+            step.appendChild(numEl);
+            display.appendChild(step);
+
+            if (i === chain.length - 1) {
+              showExplanation(chain);
+              launchConfetti();
+            }
+          }, i * 450);
+        });
+      }
+
+      function showExplanation(chain) {
+        var el = document.getElementById("chain-explanation");
+        el.textContent = "";
+
+        var last = chain[chain.length - 1];
+        var endsInCycle = isInExceptionCycle(last);
+
+        for (var i = 0; i < chain.length - 1; i++) {
+          var word = numberToWords(chain[i]);
+          var letters = countLetters(word);
+          var line = document.createElement("div");
+
+          var bold = document.createElement("strong");
+          bold.textContent = chain[i].toLocaleString("mk-MK");
+          line.appendChild(bold);
+          line.appendChild(document.createTextNode(" \u2192 "));
+
+          var wSpan = document.createElement("span");
+          wSpan.className = "word-highlight";
+          wSpan.textContent = "„" + word + '"';
+          line.appendChild(wSpan);
+          line.appendChild(document.createTextNode(" има "));
+
+          var cSpan = document.createElement("span");
+          cSpan.className = "count-highlight";
+          cSpan.textContent = letters + (letters === 1 ? " буква" : " букви");
+          line.appendChild(cSpan);
+
+          el.appendChild(line);
+        }
+
+        if (!endsInCycle) {
+          var threeLine = document.createElement("div");
+          threeLine.className = "three-line";
+          threeLine.textContent = '3 \u2192 „три" има 3 букви.';
+          el.appendChild(threeLine);
+        } else {
+          var cycleEl = document.createElement("div");
+          cycleEl.className = "cycle-note";
+          cycleEl.textContent =
+            "⚠ Исклучок: овој број заглавува во циклусот 4 \u21944 6 и никогаш не стигнува до 3.";
+          el.appendChild(cycleEl);
+        }
+
+        el.style.display = "block";
+      }
+
+      function launchConfetti() {
+        var colors = ["#D4A03C", "#2D6A4F"];
+        for (var i = 0; i < 30; i++) {
+          var p = document.createElement("div");
+          p.className = "confetti-piece";
+          p.style.left = Math.random() * 100 + "vw";
+          p.style.top = "-10px";
+          p.style.background =
+            colors[Math.floor(Math.random() * colors.length)];
+          p.style.animationDelay = Math.random() * 0.5 + "s";
+          p.style.animationDuration = 1.5 + Math.random() + "s";
+          p.style.width = 5 + Math.random() * 7 + "px";
+          p.style.height = 5 + Math.random() * 7 + "px";
+          p.style.borderRadius = Math.random() > 0.5 ? "50%" : "2px";
+          document.body.appendChild(p);
+          setTimeout(function () {
+            p.remove();
+          }, 3000);
+        }
+      }
+
+      // ============================================================
+      // Flow Graph
+      // ============================================================
+      document
+        .getElementById("range-go-btn")
+        .addEventListener("click", function () {
+          drawFlowGraph();
+        });
+      document
+        .getElementById("range-min")
+        .addEventListener("keydown", function (e) {
+          if (e.key === "Enter") drawFlowGraph();
+        });
+      document
+        .getElementById("range-max")
+        .addEventListener("keydown", function (e) {
+          if (e.key === "Enter") drawFlowGraph();
+        });
+
+      function drawFlowGraph() {
+        var container = document.getElementById("flow-container");
+        var errorEl = document.getElementById("range-error");
+        container.textContent = "";
+        errorEl.textContent = "";
+
+        var parsedMin = parseNonNegInt(
+          document.getElementById("range-min").value,
+        );
+        var parsedMax = parseNonNegInt(
+          document.getElementById("range-max").value,
+        );
+        if (!parsedMin.ok) {
+          errorEl.textContent = "Мин: " + parsedMin.msg;
+          return;
+        }
+        if (!parsedMax.ok) {
+          errorEl.textContent = "Макс: " + parsedMax.msg;
+          return;
+        }
+
+        var rangeMin = parsedMin.value,
+          rangeMax = parsedMax.value;
+        if (rangeMin > rangeMax) {
+          errorEl.textContent = "Мин мора да биде \u2264 макс.";
+          return;
+        }
+        if (rangeMax > MAX_NUMBER) {
+          errorEl.textContent = "Максимумот е превисок.";
+          return;
+        }
+        if (rangeMax - rangeMin > 100000) {
+          errorEl.textContent = "Опсегот е прешироко. Держи го под 100.000.";
+          return;
+        }
+
+        drawTable(rangeMin, rangeMax);
+
+        var rangeSize = rangeMax - rangeMin + 1;
+        var SMALL_THRESHOLD = 60,
+          HIGHWAY_CAP = 30;
+        var compactMode = rangeSize > SMALL_THRESHOLD;
+
+        var edgeWeights = {},
+          nodeTraffic = {},
+          showNodes = new Set();
+
+        for (var i = rangeMin; i <= rangeMax; i++) {
+          var chain = getChain(i);
+          for (var j = 0; j < chain.length; j++) {
+            var v = chain[j];
+            if (!compactMode || v <= HIGHWAY_CAP) {
+              nodeTraffic[v] = (nodeTraffic[v] || 0) + 1;
+              showNodes.add(v);
+            }
+            if (j < chain.length - 1 && chain[j] !== chain[j + 1]) {
+              var from = chain[j],
+                to = chain[j + 1];
+              if (!compactMode || (from <= HIGHWAY_CAP && to <= HIGHWAY_CAP)) {
+                var key = from + "->" + to;
+                edgeWeights[key] = (edgeWeights[key] || 0) + 1;
+              }
+            }
+          }
+        }
+
+        if (!compactMode) {
+          for (var i = rangeMin; i <= rangeMax; i++) {
+            getChain(i).forEach(function (v) {
+              showNodes.add(v);
+            });
+          }
+        }
+
+        var nodes = [];
+        showNodes.forEach(function (n) {
+          nodes.push({
+            id: n,
+            traffic: nodeTraffic[n] || 0,
+            word: numberToWords(n),
+          });
+        });
+
+        var edges = [];
+        for (var key in edgeWeights) {
+          var parts = key.split("->");
+          edges.push({
+            source: parseInt(parts[0]),
+            target: parseInt(parts[1]),
+            weight: edgeWeights[key],
+          });
+        }
+
+        if (compactMode) {
+          var note = document.createElement("p");
+          note.style.cssText =
+            "text-align:center;color:#7A6E62;font-size:0.9rem;margin-bottom:0.8rem;";
+          note.textContent =
+            "Со " +
+            rangeSize.toLocaleString("mk-MK") +
+            " почетни броеви, ова се " +
+            nodes.length +
+            " меѓу-броеви. Поголеми кругчиња значат минуваат низ тој меѓу број. Со држење на глувчето врз кругче може да се видат детали.";
+          container.appendChild(note);
+        }
+
+        var nodeCount = nodes.length;
+        var width = Math.min(container.clientWidth || 900, 900);
+        var height = Math.max(450, Math.min(nodeCount * 22, 650));
+        var pad = 45;
+
+        var svg = d3
+          .select(container)
+          .append("svg")
+          .attr("width", width)
+          .attr("height", height);
+
+        svg
+          .append("defs")
+          .append("marker")
+          .attr("id", "arrow")
+          .attr("viewBox", "0 -5 10 10")
+          .attr("refX", 18)
+          .attr("refY", 0)
+          .attr("markerWidth", 5)
+          .attr("markerHeight", 5)
+          .attr("orient", "auto")
+          .append("path")
+          .attr("d", "M0,-4L8,0L0,4")
+          .attr("fill", "#7A6E62");
+
+        var maxWeight =
+          d3.max(edges, function (d) {
+            return d.weight;
+          }) || 1;
+        var linkWidthScale = d3
+          .scaleLinear()
+          .domain([1, maxWeight])
+          .range([1.5, Math.min(12, 2 + maxWeight * 0.5)]);
+        var linkOpacityScale = d3
+          .scaleLinear()
+          .domain([1, maxWeight])
+          .range([0.25, 0.8]);
+
+        var maxTraffic =
+          d3.max(nodes, function (d) {
+            return d.traffic;
+          }) || 1;
+        var maxR = nodeCount > 40 ? 20 : 26,
+          minR = nodeCount > 40 ? 8 : 10;
+        var radiusScale = d3
+          .scaleSqrt()
+          .domain([1, maxTraffic])
+          .range([minR, maxR]);
+
+        function nodeColor(n) {
+          if (n === 3) return "#D4A03C";
+          if (n === 4 || n === 6) return "#5B7B8A";
+          var steps = getChain(n).length - 1;
+          var palette = [
+            "#D4A03C",
+            "#2D6A4F",
+            "#5B7B8A",
+            "#7A6E62",
+            "#C0392B",
+            "#245A42",
+          ];
+          return palette[Math.min(steps, palette.length - 1)];
+        }
+
+        var chargeStrength = nodeCount > 40 ? -150 : -280;
+        var linkDist = nodeCount > 40 ? 45 : 65;
+
+        var simulation = d3
+          .forceSimulation(nodes)
+          .force(
+            "link",
+            d3
+              .forceLink(edges)
+              .id(function (d) {
+                return d.id;
+              })
+              .distance(linkDist),
+          )
+          .force("charge", d3.forceManyBody().strength(chargeStrength))
+          .force("center", d3.forceCenter(width / 2, height / 2))
+          .force(
+            "collision",
+            d3.forceCollide().radius(function (d) {
+              return radiusScale(d.traffic) + 4;
+            }),
+          )
+          .force("x", d3.forceX(width / 2).strength(0.07))
+          .force("y", d3.forceY(height / 2).strength(0.07));
+
+        var link = svg
+          .append("g")
+          .selectAll("line")
+          .data(edges)
+          .join("line")
+          .attr("stroke", "#7A6E62")
+          .attr("stroke-width", function (d) {
+            return linkWidthScale(d.weight);
+          })
+          .attr("stroke-opacity", function (d) {
+            return linkOpacityScale(d.weight);
+          })
+          .attr("marker-end", "url(#arrow)");
+
+        var node = svg
+          .append("g")
+          .selectAll("g")
+          .data(nodes)
+          .join("g")
+          .attr("class", "flow-node")
+          .call(
+            d3
+              .drag()
+              .on("start", function (event, d) {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
+              })
+              .on("drag", function (event, d) {
+                d.fx = event.x;
+                d.fy = event.y;
+              })
+              .on("end", function (event, d) {
+                if (!event.active) simulation.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+              }),
+          );
+
+        node
+          .append("circle")
+          .attr("r", function (d) {
+            return radiusScale(d.traffic);
+          })
+          .attr("fill", function (d) {
+            return nodeColor(d.id);
+          })
+          .attr("stroke", function (d) {
+            return d.id === 3 || d.id === 4 || d.id === 6
+              ? "#3D2B1F"
+              : "rgba(61,43,31,0.2)";
+          })
+          .attr("stroke-width", function (d) {
+            return d.id === 3 || d.id === 4 || d.id === 6 ? 2.5 : 1;
+          })
+          .attr("opacity", 0.9);
+
+        node
+          .append("text")
+          .text(function (d) {
+            return d.id;
+          })
+          .attr("font-size", function (d) {
+            return d.id === 3 || d.id === 4 || d.id === 6
+              ? "14px"
+              : nodeCount > 40
+                ? "9px"
+                : "11px";
+          });
+
+        node.append("title").text(function (d) {
+          var line1 = d.id + " (\u201e" + d.word + "\u201c)";
+          var line2 =
+            d.traffic.toLocaleString("mk-MK") + " броеви поминуваат тука";
+          var line3 = getChain(d.id).join(" \u2192 ");
+          return line1 + "\n" + line2 + "\n" + line3;
+        });
+
+        simulation.on("tick", function () {
+          nodes.forEach(function (d) {
+            var r = radiusScale(d.traffic);
+            d.x = Math.max(pad + r, Math.min(width - pad - r, d.x));
+            d.y = Math.max(pad + r, Math.min(height - pad - r, d.y));
+          });
+          link
+            .attr("x1", function (d) {
+              return d.source.x;
+            })
+            .attr("y1", function (d) {
+              return d.source.y;
+            })
+            .attr("x2", function (d) {
+              return d.target.x;
+            })
+            .attr("y2", function (d) {
+              return d.target.y;
+            });
+          node.attr("transform", function (d) {
+            return "translate(" + d.x + "," + d.y + ")";
+          });
+        });
+      }
+
+      // ============================================================
+      // Transition Table
+      // ============================================================
+      var currentTableView = "summary",
+        lastTableMin = 0,
+        lastTableMax = 20;
+
+      document
+        .getElementById("table-tabs")
+        .addEventListener("click", function (e) {
+          var tab = e.target.closest(".table-tab");
+          if (!tab) return;
+          var view = tab.getAttribute("data-view");
+          if (view === currentTableView) return;
+          currentTableView = view;
+          document.querySelectorAll(".table-tab").forEach(function (t) {
+            t.className =
+              "table-tab" +
+              (t.getAttribute("data-view") === view ? " active" : "");
+          });
+          drawTable(lastTableMin, lastTableMax);
+        });
+
+      function drawTable(rangeMin, rangeMax) {
+        lastTableMin = rangeMin;
+        lastTableMax = rangeMax;
+        var container = document.getElementById("table-container");
+        container.textContent = "";
+        if (currentTableView === "summary")
+          drawSummaryTable(container, rangeMin, rangeMax);
+        else drawDetailTable(container, rangeMin, rangeMax);
+      }
+
+      function drawSummaryTable(container, rangeMin, rangeMax) {
+        var firstStep = {};
+        for (var i = rangeMin; i <= rangeMax; i++) {
+          var t = nextNumber(i);
+          firstStep[t] = (firstStep[t] || 0) + 1;
+        }
+        var rangeSize = rangeMax - rangeMin + 1;
+        var rows = Object.keys(firstStep)
+          .map(function (k) {
+            return { target: parseInt(k), count: firstStep[k] };
+          })
+          .sort(function (a, b) {
+            return b.count - a.count;
+          });
+        var maxCount = rows.length > 0 ? rows[0].count : 1;
+
+        var table = document.createElement("table");
+        var thead = document.createElement("thead");
+        var hrow = document.createElement("tr");
+        ["Прв чекор", "Со букви", "Броеви", "Удел", ""].forEach(
+          function (text) {
+            var th = document.createElement("th");
+            th.textContent = text;
+            hrow.appendChild(th);
+          },
+        );
+        thead.appendChild(hrow);
+        table.appendChild(thead);
+
+        var tbody = document.createElement("tbody");
+        rows.forEach(function (row) {
+          var tr = document.createElement("tr");
+          if (row.target === 3) tr.className = "is-three";
+          else if (row.target === 4 || row.target === 6)
+            tr.className = "is-cycle";
+          var pct = (row.count / rangeSize) * 100;
+
+          var tdNum = document.createElement("td");
+          tdNum.className = "num-cell";
+          tdNum.textContent = row.target;
+          tr.appendChild(tdNum);
+          var tdWord = document.createElement("td");
+          tdWord.className = "word-cell";
+          tdWord.textContent = numberToWords(row.target);
+          tr.appendChild(tdWord);
+          var tdCount = document.createElement("td");
+          tdCount.textContent = row.count.toLocaleString("mk-MK");
+          tr.appendChild(tdCount);
+          var tdPct = document.createElement("td");
+          tdPct.textContent = pct.toFixed(1) + "%";
+          tr.appendChild(tdPct);
+
+          var tdBar = document.createElement("td");
+          var bar = document.createElement("span");
+          bar.className = "pct-bar";
+          bar.style.width = Math.max(2, (row.count / maxCount) * 120) + "px";
+          bar.style.background =
+            row.target === 3
+              ? "#D4A03C"
+              : row.target === 4 || row.target === 6
+                ? "#5B7B8A"
+                : "#2D6A4F";
+          bar.style.opacity = "0.7";
+          tdBar.appendChild(bar);
+          tr.appendChild(tdBar);
+          tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+        container.appendChild(table);
+      }
+
+      var detailSortCol = 0,
+        detailSortAsc = true;
+
+      function drawDetailTable(container, rangeMin, rangeMax) {
+        var rangeSize = rangeMax - rangeMin + 1;
+        if (rangeSize > 5000) {
+          var note = document.createElement("p");
+          note.style.cssText = "padding:1rem;color:#7A6E62;text-align:center;";
+          note.textContent =
+            "Деталниот приказ е ограничен на 5.000. Вашиот опсег има " +
+            rangeSize.toLocaleString("mk-MK") +
+            ". Пробај резиме.";
+          container.appendChild(note);
+          return;
+        }
+
+        var data = [];
+        for (var i = rangeMin; i <= rangeMax; i++) {
+          var chain = getChain(i);
+          var last = chain[chain.length - 1];
+          var steps = isInExceptionCycle(last) ? "\u221e" : chain.length - 1;
+          data.push({
+            num: i,
+            word: numberToWords(i),
+            letters: nextNumber(i),
+            chain: chain,
+            steps: steps,
+          });
+        }
+
+        var headers = [
+          { text: "Број", key: "num" },
+          { text: "Со зборови", key: "word" },
+          { text: "Букви", key: "letters" },
+          { text: "Чекори до 3", key: "steps" },
+          { text: "Цел синџир", key: null },
+        ];
+
+        function renderTable() {
+          container.textContent = "";
+          var sorted = data.slice();
+          var col = headers[detailSortCol];
+          if (col.key) {
+            sorted.sort(function (a, b) {
+              var va = a[col.key],
+                vb = b[col.key];
+              if (typeof va === "string") {
+                var c = va.localeCompare(vb);
+                return detailSortAsc ? c : -c;
+              }
+              return detailSortAsc ? va - vb : vb - va;
+            });
+          }
+
+          var table = document.createElement("table");
+          var thead = document.createElement("thead");
+          var hrow = document.createElement("tr");
+          headers.forEach(function (h, idx) {
+            var th = document.createElement("th");
+            if (h.key) {
+              th.className = "sortable";
+              th.addEventListener("click", function () {
+                if (detailSortCol === idx) detailSortAsc = !detailSortAsc;
+                else {
+                  detailSortCol = idx;
+                  detailSortAsc = true;
+                }
+                renderTable();
+              });
+            }
+            th.appendChild(document.createTextNode(h.text));
+            if (h.key) {
+              var arrow = document.createElement("span");
+              arrow.className = "sort-arrow";
+              arrow.textContent =
+                detailSortCol === idx
+                  ? detailSortAsc
+                    ? " \u25B2"
+                    : " \u25BC"
+                  : " \u25BD";
+              th.appendChild(arrow);
+            }
+            hrow.appendChild(th);
+          });
+          thead.appendChild(hrow);
+          table.appendChild(thead);
+
+          var tbody = document.createElement("tbody");
+          sorted.forEach(function (row) {
+            var tr = document.createElement("tr");
+            if (row.num === 3) tr.className = "is-three";
+            else if (row.num === 4 || row.num === 6) tr.className = "is-cycle";
+
+            var tdNum = document.createElement("td");
+            tdNum.className = "num-cell";
+            tdNum.textContent = row.num.toLocaleString("mk-MK");
+            tr.appendChild(tdNum);
+            var tdWord = document.createElement("td");
+            tdWord.className = "word-cell";
+            tdWord.textContent = row.word;
+            tr.appendChild(tdWord);
+            var tdLetters = document.createElement("td");
+            tdLetters.textContent = row.letters;
+            tr.appendChild(tdLetters);
+            var tdSteps = document.createElement("td");
+            tdSteps.textContent = row.steps;
+            tr.appendChild(tdSteps);
+            var tdChain = document.createElement("td");
+            tdChain.className = "chain-cell";
+            tdChain.textContent = row.chain.join(" \u2192 ");
+            tr.appendChild(tdChain);
+            tbody.appendChild(tr);
+          });
+          table.appendChild(tbody);
+          container.appendChild(table);
+        }
+        renderTable();
+      }
+
+      // ============================================================
+      // Init
+      // ============================================================
+      drawFlowGraph();
+    </script>
+  </body>
+</html>
